@@ -10,7 +10,7 @@ class TriggerControl
     public:
         TriggerControl(ros::NodeHandle *nh)
             {   
-                single_motor_control_pub= nh->advertise<interbotix_xs_msgs::JointSingleCommand>("/vx300/commands/joint_single", 10);
+                joint_single_cmd_pub= nh->advertise<interbotix_xs_msgs::JointSingleCommand>("/vx300/commands/joint_single", 10);
                 squeeze_service = nh->advertiseService("gripper/squeeze", &Gripper::squeeze, this);
                 unsqueeze_service = nh->advertiseService("gripper/unsqueeze", &Gripper::unsqueeze, this);
                 timed_squeeze_service = nh->advertiseService("gripper/timed_squeeze", &Gripper::timed_squeeze, this);
@@ -20,10 +20,11 @@ class TriggerControl
     private:
         // motor position values for approximately unsqueeze/squeezed orientation
         // determined experimentally from viewing motor position at squeeze/unsqueeze in Dynamixel Wizard
-        uint32_t squeeze_pos = 340; // TODO: ADJUST ON PHYSICAL ROBOT
-        uint32_t unsqueeze_pos = 687;  // TODO: ADJUST ON PHYSICAL ROBOT
+        uint32_t squeeze_pos = 340; // TODO: adjust based on physical robot constrains
+        uint32_t unsqueeze_pos = 687;  // TODO: adjust based on physical robot constrains
+        interbotix_xs_msgs::JointSingleCommand jsc;
 
-        ros::Publisher single_motor_control_pub;
+        ros::Publisher joint_single_cmd_pub;
 
         ros::ServiceServer squeeze_service;
         ros::ServiceServer unsqueeze_service; 
@@ -33,12 +34,12 @@ class TriggerControl
         // service callback functions 
         bool squeeze(single_motor::squeeze::Request &req,
                         single_motor::squeeze::Response &res){
-            return (this->send_motor_request(squeeze_pos));
+            return (this->publish_trigger_cmd(squeeze_pos));
         }
 
         bool unsqueeze(single_motor::unsqueeze::Request &req,
                         single_motor::unsqueeze::Response &res){
-            return (this->send_motor_request(unsqueeze_pos));
+            return (this->publish_trigger_cmd(unsqueeze_pos));
         }
 
         bool timed_squeeze(single_motor::timed_squeeze::Request &req,
@@ -50,12 +51,17 @@ class TriggerControl
                              single_motor::partial_squeeze::Response &res){
             double percentage_squeeze = (double) req.value / (double) 255;
             int squeeze_value = (int) (percentage_squeeze * ((int)squeeze_pos - (int)unsqueeze_pos)) + (int)unsqueeze_pos;
-            return (this->send_motor_request(squeeze_value));
+            return (this->publish_trigger_cmd(squeeze_value));
         }
 
-        // client function : communicates with the dynamixel workbench to control the motor
-        bool send_motor_request(int value){
-            std::cout<<"test"<<endl;
+        // publish desired end-effector motor position
+        bool publish_trigger_cmd(int value){
+            jsc.name = "gripper";
+            jsc.cmd = value;
+            
+            joint_single_cmd_pub.publish(jsc);
+            //TODO: Implement check to see if motor command executed succesfully
+            return true;
         }
 };
 
