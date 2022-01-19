@@ -18,8 +18,6 @@ class TriggerControl
             }
     
     private:
-        bool state; // this->state is true if squeezed, false if unsqueezed
-
         // motor position values for approximately unsqueeze/squeezed orientation
         // determined experimentally from viewing motor position at squeeze/unsqueeze in Dynamixel Wizard
         uint32_t squeeze_pos = 340; // TODO: ADJUST ON PHYSICAL ROBOT
@@ -35,36 +33,23 @@ class TriggerControl
         // service callback functions 
         bool squeeze(single_motor::squeeze::Request &req,
                         single_motor::squeeze::Response &res){
-            this->state = true;
             return (this->send_motor_request(squeeze_pos));
         }
 
         bool unsqueeze(single_motor::unsqueeze::Request &req,
                         single_motor::unsqueeze::Response &res){
-            this->state = false;
             return (this->send_motor_request(unsqueeze_pos));
         }
 
         bool timed_squeeze(single_motor::timed_squeeze::Request &req,
                             single_motor::timed_squeeze::Response &res){
-            if (this->state){ // this->state is true, so gripper is squeezed, to timed_squeeze unsqueeze gripper
-                this->state = false;
-                return (this->send_motor_request(unsqueeze_pos));
-            }
-            else{ // this->state is false, so gripper is squeezed, to timed_squeeze squeeze gripper
-                this->state = true;
-                return (this->send_motor_request(squeeze_pos));
-            }
+           std::cout<<"test"<<endl;
         }
 
         bool partial_squeeze(single_motor::partial_squeeze::Request &req,
                              single_motor::partial_squeeze::Response &res){
-            /* This is meant for partial_squeeze closing upon fragile objects that would be damaged 
-               by a full squeeze. The this->state is changed to be squeezed so that the timed_squeeze function still works
-               within this context - toggling from a partial_squeeze squeeze unsqueezes the gripper. */
             double percentage_squeeze = (double) req.value / (double) 255;
             int squeeze_value = (int) (percentage_squeeze * ((int)squeeze_pos - (int)unsqueeze_pos)) + (int)unsqueeze_pos;
-            this->state = true; 
             return (this->send_motor_request(squeeze_value));
         }
 
