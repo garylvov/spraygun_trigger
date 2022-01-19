@@ -1,5 +1,5 @@
 #include "ros/ros.h"
-#include "interbotix_xs_sdk/xs_sdk_obj.h"
+#include "interbotix_xs_msgs/JointSingleCommand.h"
 #include "trigger_control/squeeze.h"
 #include "trigger_control/unsqueeze.h"
 #include "trigger_control/timed_squeeze.h"
@@ -10,7 +10,7 @@ class TriggerControl
     public:
         TriggerControl(ros::NodeHandle *nh)
             {   
-                single_motor_control_pub= nh->advertise<InterbotixRobotXS::robot_sub_command_single>("commands/joint_single", 10);
+                single_motor_control_pub= nh->advertise<interbotix_xs_msgs::JointSingleCommand>("/vx300/commands/joint_single", 10);
                 squeeze_service = nh->advertiseService("gripper/squeeze", &Gripper::squeeze, this);
                 unsqueeze_service = nh->advertiseService("gripper/unsqueeze", &Gripper::unsqueeze, this);
                 timed_squeeze_service = nh->advertiseService("gripper/timed_squeeze", &Gripper::timed_squeeze, this);
@@ -69,8 +69,7 @@ class TriggerControl
         }
 
         // client function : communicates with the dynamixel workbench to control the motor
-        bool send_motor_request(uint32_t value, std::string command="", uint8_t id=1, 
-                                        std::string addr_name="Goal_Position"){
+        bool send_motor_request(int value){
             std::cout<<"test"<<endl;
         }
 };
