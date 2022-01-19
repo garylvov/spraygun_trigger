@@ -44,7 +44,9 @@ class TriggerControl
 
         bool timed_squeeze(single_motor::timed_squeeze::Request &req,
                             single_motor::timed_squeeze::Response &res){
-           std::cout<<"test"<<endl;
+            
+            // implement non-blocking timer
+            this->partial_squeeze(&req);
         }
 
         bool partial_squeeze(single_motor::partial_squeeze::Request &req,
