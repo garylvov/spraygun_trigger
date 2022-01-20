@@ -1,9 +1,8 @@
 #include "ros/ros.h"
 #include "interbotix_xs_msgs/JointSingleCommand.h"
-#include "trigger_control/squeeze.h"
-#include "trigger_control/unsqueeze.h"
-#include "trigger_control/timed_squeeze.h"
-#include "trigger_control/partial_squeeze.h"
+#include "spraygun_trigger/squeeze.h"
+#include "spraygun_trigger/unsqueeze.h"
+#include "spraygun_trigger/partial_squeeze.h"
 
 class TriggerControl
 {
@@ -11,10 +10,9 @@ class TriggerControl
         TriggerControl(ros::NodeHandle *nh)
             {   
                 joint_single_cmd_pub= nh->advertise<interbotix_xs_msgs::JointSingleCommand>("/vx300/commands/joint_single", 10);
-                squeeze_service = nh->advertiseService("gripper/squeeze", &Gripper::squeeze, this);
-                unsqueeze_service = nh->advertiseService("gripper/unsqueeze", &Gripper::unsqueeze, this);
-                timed_squeeze_service = nh->advertiseService("gripper/timed_squeeze", &Gripper::timed_squeeze, this);
-                partial_squeeze_service = nh->advertiseService("/gripper/partial_squeeze", &Gripper::partial_squeeze, this);
+                squeeze_service = nh->advertiseService("gripper/squeeze", &TriggerControl::squeeze, this);
+                unsqueeze_service = nh->advertiseService("gripper/unsqueeze", &TriggerControl::unsqueeze, this);
+                partial_squeeze_service = nh->advertiseService("/gripper/partial_squeeze", &TriggerControl::partial_squeeze, this);
             }
     
     private:
@@ -28,29 +26,21 @@ class TriggerControl
 
         ros::ServiceServer squeeze_service;
         ros::ServiceServer unsqueeze_service; 
-        ros::ServiceServer timed_squeeze_service; 
         ros::ServiceServer partial_squeeze_service; 
         
         // service callback functions 
-        bool squeeze(single_motor::squeeze::Request &req,
-                        single_motor::squeeze::Response &res){
+        bool squeeze(spraygun_trigger::squeeze::Request &req,
+                        spraygun_trigger::squeeze::Response &res){
             return (this->publish_trigger_cmd(squeeze_pos));
         }
 
-        bool unsqueeze(single_motor::unsqueeze::Request &req,
-                        single_motor::unsqueeze::Response &res){
+        bool unsqueeze(spraygun_trigger::unsqueeze::Request &req,
+                        spraygun_trigger::unsqueeze::Response &res){
             return (this->publish_trigger_cmd(unsqueeze_pos));
         }
 
-        bool timed_squeeze(single_motor::timed_squeeze::Request &req,
-                            single_motor::timed_squeeze::Response &res){
-            
-            // implement non-blocking timer
-            this->partial_squeeze(&req);
-        }
-
-        bool partial_squeeze(single_motor::partial_squeeze::Request &req,
-                             single_motor::partial_squeeze::Response &res){
+        bool partial_squeeze(spraygun_trigger::partial_squeeze::Request &req,
+                             spraygun_trigger::partial_squeeze::Response &res){
             double percentage_squeeze = (double) req.value / (double) 255;
             int squeeze_value = (int) (percentage_squeeze * ((int)squeeze_pos - (int)unsqueeze_pos)) + (int)unsqueeze_pos;
             return (this->publish_trigger_cmd(squeeze_value));
