@@ -3,7 +3,9 @@ project(spraygun_trigger)
 
 find_package(catkin REQUIRED COMPONENTS
   std_msgs
+  interbotix_xs_msgs
   message_generation
+  roscpp
 )
 
 add_service_files(
@@ -15,12 +17,14 @@ add_service_files(
 )
 
 generate_messages(
-  DEPENDENCIES 
+  DEPENDENCIES
   std_msgs
 )
-catkin_package()
 
+catkin_package()
 include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
+add_executable(trigger_control_node src/trigger_control.cpp)
+target_link_libraries(trigger_control_node ${catkin_LIBRARIES})
