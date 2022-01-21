@@ -18,8 +18,8 @@ class TriggerControl
     private:
         // motor position values for approximately unsqueeze/squeezed orientation
         // determined experimentally from viewing motor position at squeeze/unsqueeze in Dynamixel Wizard
-        uint32_t squeeze_pos = 340; // TODO: adjust based on physical robot constrains
-        uint32_t unsqueeze_pos = 687;  // TODO: adjust based on physical robot constrains
+        uint32_t squeeze_pos = 3.14; // TODO: adjust based on physical robot constrains
+        uint32_t unsqueeze_pos = 1.14;  // TODO: adjust based on physical robot constrains
         interbotix_xs_msgs::JointSingleCommand jsc;
 
         ros::Publisher joint_single_cmd_pub;
@@ -41,7 +41,7 @@ class TriggerControl
 
         bool partial_squeeze(spraygun_trigger::partial_squeeze::Request &req,
                              spraygun_trigger::partial_squeeze::Response &res){
-            double percentage_squeeze = (double) req.value / (double) 255;
+            double percentage_squeeze = ((double) req.value / (double) 255)*6.28;
             int squeeze_value = (int) (percentage_squeeze * ((int)squeeze_pos - (int)unsqueeze_pos)) + (int)unsqueeze_pos;
             return (this->publish_trigger_cmd(squeeze_value));
         }
